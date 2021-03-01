@@ -44,6 +44,8 @@ EOF
 echo  First results 
 more s3_paths_list.txt
 
+# If the ARD location is needed...
+#                INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
 # LC08_L1TP_106068_20191216_20201023_01_T1
 psql --variable=ON_ERROR_STOP=1 --csv --quiet --tuples-only --no-psqlrc \
    -h dea-db.nci.org.au datacube <<EOF > landsat_L1_C1_tar.txt
@@ -58,7 +60,6 @@ ds.metadata->'properties'->>'landsat:landsat_product_id'::TEXT,
 '.tar')
 FROM agdc.dataset ds
                 INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
-                INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
 WHERE  dst.name='$product_name'
 ORDER BY ds.added DESC 
 LIMIT 1;
