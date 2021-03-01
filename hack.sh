@@ -46,8 +46,16 @@ more s3_paths_list.txt
 
 # LC08_L1TP_106068_20191216_20201023_01_T1
 psql --variable=ON_ERROR_STOP=1 --csv --quiet --tuples-only --no-psqlrc \
-   -h dea-db.nci.org.au datacube <<EOF > landsat_product_id.txt
-SELECT  ds.metadata->'properties'->>'landsat:landsat_product_id'
+   -h dea-db.nci.org.au datacube <<EOF > landsat_L1_C1_tar.txt
+SELECT  concat('/g/data/da82/AODH/USGS/L1/Landsat/C1/', 
+substring(ds.metadata->'properties'->>'odc:region_code' from 1 for 3)::TEXT,  
+'_', 
+substring(ds.metadata->'properties'->>'odc:region_code' from 4 for 3)::TEXT,  
+'/',
+substring(ds.metadata->'properties'->>'landsat:landsat_scene_id' for 16), 
+'/',
+ds.metadata->'properties'->>'landsat:landsat_product_id'::TEXT, 
+'.tar')
 FROM agdc.dataset ds
                 INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
                 INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
@@ -55,4 +63,7 @@ WHERE  dst.name='$product_name'
 ORDER BY ds.added DESC 
 LIMIT 1;
 EOF
+
+echo  2nd results 
+more landsat_product_id.txt
 
