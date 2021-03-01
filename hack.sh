@@ -26,18 +26,33 @@ module load ard-pipeline/alpha
 rm -f s3_paths_list.txt  # In case we've been run before
 #for product_name in s2a_ard_granule s2b_ard_granule; do
 #   echo Searching for $product_name datasets.
-#product_name="ga_ls8c_ard_3"
+product_name="ga_ls8c_ard_3"
+# ///g/data/xu18/ga/ga_ls8c_ard_3/106/068/2019/12/16/ga_ls8c_ard_3-2-0_106068_2019-12-16_final.odc-metadata.yaml
+#  dst.name='ga_ls8c_ard_3'
+
 psql --variable=ON_ERROR_STOP=1 --csv --quiet --tuples-only --no-psqlrc \
    -h dea-db.nci.org.au datacube <<EOF >> s3_paths_list.txt
-SELECT  ds.added, dsl.uri_body, ds.metadata
+SELECT  dsl.uri_body
 FROM agdc.dataset ds
                 INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
                 INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
-WHERE  dst.name='ga_ls8c_ard_3'
+WHERE  dst.name='$product_name'
 ORDER BY ds.added DESC 
 LIMIT 1;
 EOF
-            
-echo -n Num Datasets to upload: 
-wc -l s3_paths_list.txt
+
+echo  First results 
+more s3_paths_list.txt
+
+# LC08_L1TP_106068_20191216_20201023_01_T1
+psql --variable=ON_ERROR_STOP=1 --csv --quiet --tuples-only --no-psqlrc \
+   -h dea-db.nci.org.au datacube <<EOF > landsat_product_id.txt
+SELECT  ds.metadata->'properties'->>'landsat:landsat_product_id'
+FROM agdc.dataset ds
+                INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
+                INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
+WHERE  dst.name='$product_name'
+ORDER BY ds.added DESC 
+LIMIT 1;
+EOF
 
